@@ -66,3 +66,28 @@ specdata <- map_df(files_filtered, read_csv,
                    ))
 glimpse(specdata)
 
+specdata %>% 
+  select(-Date) %>% 
+  summarise_if(is.double, mean, na.rm = TRUE) %>% 
+  pull(nitrate)
+
+pollutant_mean <- function(directory, pollutant, id = 1:332) {
+  files <- list.files(directory, full.names = TRUE)
+  files_filtered <- files[id]
+  specdata <- map_df(files_filtered, read_csv,
+                     col_types = list(
+                       col_date(),
+                       col_double(),
+                       col_double(),
+                       col_integer()
+                     ))
+  specdata %>% 
+    select(-Date) %>% 
+    summarise_if(is.double, mean, na.rm = TRUE) %>% 
+    pull(pollutant) %>% 
+    return()
+}
+
+pollutant_mean(directory = "specdata", pollutant = "sulfate", id = sample(1:332, 20))
+pollutant_mean(directory = "specdata", pollutant = "nitrate", id = sample(1:332, 20))
+
