@@ -91,3 +91,6 @@ pollutant_mean <- function(directory, pollutant, id = 1:332) {
 pollutant_mean(directory = "specdata", pollutant = "sulfate", id = sample(1:332, 20))
 pollutant_mean(directory = "specdata", pollutant = "nitrate", id = sample(1:332, 20))
 
+# ------------------------------------------------------------------------
+# Problem 2
+# ------------------------------------------------------------------------
