@@ -94,3 +94,84 @@ pollutant_mean(directory = "specdata", pollutant = "nitrate", id = sample(1:332,
 # ------------------------------------------------------------------------
 # Problem 2
 # ------------------------------------------------------------------------
+complete_spec_cases <- function(directory, id = 1:332) {
+  
+  files <- list.files(directory, full.names = TRUE)
+  
+  specdata <- map_df(files[id], read_csv,
+                     col_types = list(
+                       col_date(),
+                       col_double(),
+                       col_double(),
+                       col_integer()
+                     ))
+  
+  complete_specdata <- specdata %>% 
+    na.omit() %>% 
+    group_by(ID) %>% 
+    summarise(nobs = n())
+  
+  return(complete_specdata)
+}
+
+complete_spec_cases(directory = "specdata", id = sample(1:332, 20))
+
+# ------------------------------------------------------------------------
+# Problem 3
+# ------------------------------------------------------------------------
+id_counts <- specdata %>% 
+  na.omit() %>% 
+  group_by(ID) %>% 
+  count() %>% 
+  filter(n > 100)
+
+if (nrow(id_counts) < 1) {
+  return(numeric(0))
+} else {
+  print("All is well.")
+}
+
+specdata <- id_counts %>% 
+  inner_join(specdata, by = "ID") %>% 
+  na.omit()
+
+specdata
+
+specdata %>%
+  na.omit() %>% 
+  nest(-ID) %>% 
+  mutate(correlation = map(data, ~cor(.x$sulfate, .x$nitrate))) %>% 
+  unnest(correlation) %>% 
+  select(-data)
+
+pollutant_cor <- function(directory, threshold = 0) {
+  files <- list.files(directory, full.names = TRUE)
+  
+  specdata <- map_df(files, read_csv,
+                     col_types = list(
+                       col_date(),
+                       col_double(),
+                       col_double(),
+                       col_integer()
+                     )) %>% na.omit()
+  
+  id_counts <- specdata %>% 
+    group_by(ID) %>% 
+    count() %>% 
+    filter(n > threshold)
+  
+  if (nrow(id_counts) < 1) {
+    return(numeric(0))
+  } 
+  
+  correlations <- id_counts %>% 
+    inner_join(specdata, by = "ID") %>% 
+    nest(-ID) %>% 
+    mutate(correlation = map(data, ~cor(.x$sulfate, .x$nitrate))) %>% 
+    unnest(correlation)
+  
+  return(correlations)
+}
+
+pollutant_cor(directory = "specdata", threshold = 100)
+pollutant_cor(directory = "specdata", threshold = 100000)
